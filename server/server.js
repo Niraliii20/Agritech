@@ -4,6 +4,7 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 import { connectDB } from './config/db.js';
@@ -30,48 +31,45 @@ const __dirname  = path.dirname(__filename);
 
 const app  = express();
 const PORT = process.env.PORT || 5000;
-const isProd = process.env.NODE_ENV === 'production';
+
+// Determine if a production build exists on disk
+// (works regardless of whether NODE_ENV is set on the host)
+const distPath   = path.join(__dirname, '..', 'client', 'dist');
+const distExists = fs.existsSync(path.join(distPath, 'index.html'));
+
+console.log('[AgriTech] dist path:', distPath);
+console.log('[AgriTech] dist exists:', distExists);
+console.log('[AgriTech] NODE_ENV:', process.env.NODE_ENV || 'not set');
 
 // ── Connect to MongoDB ────────────────────────────────────────────────────────
 connectDB();
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
-// In production the frontend is served by this same Express process (same
-// origin), so CORS only matters for external API clients (Postman, mobile, etc.)
-// We keep it permissive here; tighten origin array if you add a separate client.
-const corsOptions = {
-  origin: isProd
-    ? (process.env.ALLOWED_ORIGINS
-        ? process.env.ALLOWED_ORIGINS.split(',')
-        : true)          // true = reflect request Origin (allows same-origin)
-    : 'http://localhost:5173',
+app.use(cors({
+  origin: true,          // reflect request Origin — safe since we check JWT on every protected route
   credentials: true,
   optionsSuccessStatus: 200,
-};
-app.use(cors(corsOptions));
+}));
 
 // ── Common middleware ─────────────────────────────────────────────────────────
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 if (process.env.NODE_ENV !== 'test') {
-  app.use(morgan(isProd ? 'combined' : 'dev'));
+  app.use(morgan('dev'));
 }
 
-// ── Rate limiting on sensitive auth endpoints ─────────────────────────────────
+// ── Rate limiting ─────────────────────────────────────────────────────────────
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
-  message: {
-    success: false,
-    message: 'Too many authentication attempts, please try again after 15 minutes.',
-  },
+  message: { success: false, message: 'Too many authentication attempts, please try again after 15 minutes.' },
 });
 app.use('/api/auth/login',    authLimiter);
 app.use('/api/auth/register', authLimiter);
 
-// ── Health-check endpoint ─────────────────────────────────────────────────────
+// ── Health-check ──────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'online',
@@ -79,6 +77,7 @@ app.get('/api/health', (req, res) => {
     version: '1.0.0',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
+    distExists,
   });
 });
 
@@ -96,37 +95,36 @@ app.use('/api/community',     communityRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin',         adminRoutes);
 
-// ── Serve React frontend in production ───────────────────────────────────────
-// In development Vite runs on :5173 and proxies /api → :5000.
-// In production we build the React app and serve its dist/ from Express.
-if (isProd) {
-  const distPath = path.join(__dirname, '..', 'client', 'dist');
+// ── Serve React frontend ──────────────────────────────────────────────────────
+// We check if client/dist/index.html exists rather than relying on NODE_ENV.
+// This means it works on Render even if NODE_ENV is not explicitly set.
+if (distExists) {
+  // Static assets — JS, CSS, images, fonts
+  app.use(express.static(distPath, { maxAge: '1d' }));
 
-  // Static assets (JS bundles, CSS, images, fonts …)
-  app.use(express.static(distPath, { maxAge: '1y', etag: false }));
-
-  // SPA catch-all: any non-/api path returns index.html so React Router works
+  // SPA catch-all: all non-/api routes return index.html (React Router handles them)
   app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api')) return next(); // let API 404s fall through
+    if (req.path.startsWith('/api')) return next(); // API 404s fall through to notFound
     res.sendFile(path.join(distPath, 'index.html'));
+  });
+} else {
+  // No build found — running in local dev mode (Vite serves the frontend on :5173)
+  app.get('/', (req, res) => {
+    res.json({
+      status: 'online',
+      message: 'AgriTech API is running. Frontend is served by Vite on http://localhost:5173 in development.',
+      docs: '/api/health',
+    });
   });
 }
 
-// ── Error-handling middleware ─────────────────────────────────────────────────
+// ── Error handling ────────────────────────────────────────────────────────────
 app.use(notFound);
 app.use(errorHandler);
 
 // ── Start server ──────────────────────────────────────────────────────────────
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(
-    `[AgriTech Server] Running on http://localhost:${PORT} in ${process.env.NODE_ENV || 'development'} mode`
-  );
-});
-
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('[AgriTech Server] SIGTERM received — shutting down gracefully');
-  server.close(() => process.exit(0));
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`[AgriTech Server] Listening on port ${PORT}`);
 });
 
 export default app;
