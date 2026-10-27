@@ -1,0 +1,111 @@
+﻿{
+  "brand": {
+    "name": "AgriTech",
+    "tagline": "Smart Farming, Better Tomorrow."
+  },
+  "nav": {
+    "home": "Home",
+    "features": "Features",
+    "weather": "Weather",
+    "cropManagement": "Crop Management",
+    "marketplace": "Marketplace",
+    "expertAdvice": "Expert Advice",
+    "community": "Community Forum",
+    "soilAnalysis": "Soil Analysis",
+    "pestAlerts": "Pest Alerts",
+    "dashboard": "Dashboard",
+    "myFarms": "My Farms",
+    "orders": "My Orders",
+    "notifications": "Notifications",
+    "profile": "Profile & Settings",
+    "admin": "Admin Portal",
+    "login": "Login",
+    "register": "Get Started Free",
+    "logout": "Logout"
+  },
+  "hero": {
+    "badge": "Digital Farming Companion for Indian Agriculture",
+    "headline": "Grow Smarter. Farm Better. Harvest More.",
+    "subtitle": "Your unified digital farming platform for hyper-local weather insights, crop health tracking, soil analysis, pest alerts, and verified expert agricultural guidance.",
+    "ctaExplore": "Explore Smart Farming",
+    "ctaStart": "Get Started Free"
+  },
+  "stats": {
+    "title": "Platform Impact & Reach",
+    "disclaimer": "Sample illustrative metrics representing demonstration activity",
+    "farmers": "Registered Farmers",
+    "farms": "Farms Monitored",
+    "acres": "Acres Managed",
+    "accuracy": "Advisory Satisfaction"
+  },
+  "features": {
+    "sectionTitle": "Everything Your Farm Needs in One Place",
+    "sectionSubtitle": "Comprehensive agronomic tools tailored to empower Indian farmers from sowing to harvest.",
+    "weatherTitle": "Weather Forecasting",
+    "weatherDesc": "Real-time temperature, humidity, rainfall probability, and specialized spraying and irrigation advisories.",
+    "soilTitle": "Soil Health Analysis",
+    "soilDesc": "Interactive nutrient assessment of pH, NPK, and moisture with custom fertilizer recommendations.",
+    "cropTitle": "Crop Management",
+    "cropDesc": "End-to-end lifecycle tracking across 8 distinct growth stages with irrigation and fertilizer logging.",
+    "pestTitle": "Pest & Disease Alerts",
+    "pestDesc": "Symptom diagnosis library with organic and scientific treatment protocols to protect farm yields.",
+    "marketTitle": "Agricultural Marketplace",
+    "marketDesc": "Direct access to high-germination seeds, certified bio-fertilizers, and modern irrigation kits.",
+    "expertTitle": "Expert Consultation",
+    "expertDesc": "Direct access to certified agronomists and plant pathologists from top agricultural institutes."
+  },
+  "howItWorks": {
+    "title": "How AgriTech Helps Farmers",
+    "step1Title": "Set Up Your Farm",
+    "step1Desc": "Register your farm plot details, soil type, and irrigation source in less than 2 minutes.",
+    "step2Title": "Monitor Weather & Crops",
+    "step2Desc": "Receive automated daily agro-weather advisories and track crop growth milestones seamlessly.",
+    "step3Title": "Make Smarter Decisions",
+    "step3Desc": "Optimize fertilizer expenditure, mitigate pest threats early, and consult verified agronomists."
+  },
+  "testimonials": {
+    "title": "Farmer Experiences",
+    "disclaimer": "Demonstration feedback representing typical user scenarios",
+    "t1": "AgriTech's timely Yellow Rust advisory saved my wheat plot in Ludhiana. The spray recommendation was right on point!",
+    "t1Author": "Rajesh Patel — Ludhiana, Punjab",
+    "t2": "The soil analysis tool helped me understand that my field was deficient in potassium. Applying MOP boosted my tomato harvest.",
+    "t2Author": "Suresh Sharma — Karnal, Haryana",
+    "t3": "Ordering certified seeds and getting expert advice directly on my phone makes modern farming so much easier.",
+    "t3Author": "Ganesh Patil — Pune, Maharashtra"
+  },
+  "dashboard": {
+    "welcome": "Welcome back",
+    "farmLocation": "Farm Location",
+    "currentDate": "Date",
+    "quickActions": "Quick Actions",
+    "addFarm": "Add New Farm",
+    "addCrop": "Add New Crop",
+    "checkWeather": "Check Weather",
+    "analyzeSoil": "Analyze Soil",
+    "browseMarket": "Browse Marketplace",
+    "consultExpert": "Consult an Expert",
+    "totalFarms": "Registered Farms",
+    "activeCrops": "Active Crops",
+    "soilStatus": "Soil Health Status",
+    "activeAlerts": "Active Alerts",
+    "recentActivities": "Recent Farming Activities",
+    "upcomingTasks": "Upcoming Tasks",
+    "weatherOverview": "Weather Overview",
+    "viewAll": "View All"
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "search": "Search...",
+    "all": "All",
+    "submit": "Submit",
+    "status": "Status",
+    "actions": "Actions",
+    "noData": "No records found",
+    "rupees": "₹"
+  }
+}
