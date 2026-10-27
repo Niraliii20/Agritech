@@ -73,42 +73,60 @@ router.post('/login', async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Please provide both email and password' });
     }
 
-    // Guard if database is still connecting
-    if (mongoose.connection.readyState !== 1) {
-      return res.status(503).json({
-        success: false,
-        message: 'Database is connecting to MongoDB Atlas. Please wait a few seconds and try again.',
-      });
-    }
+    const normalizedEmail = (email || '').trim().toLowerCase();
 
-    const normalizedEmail = email.trim().toLowerCase();
-    let user = await User.findOne({ email: normalizedEmail }).select('+password');
-
-    // Auto-create demo accounts if they don't exist yet
-    if (!user && normalizedEmail === 'farmer@agritech.in' && password === 'Farmer@123') {
-      user = await User.create({
+    // ── Instant demo login (NO MongoDB connection required) ──
+    if (normalizedEmail === 'farmer@agritech.in' && password === 'Farmer@123') {
+      const demoFarmer = {
+        id: '65f000000000000000000001',
+        _id: '65f000000000000000000001',
         fullName: 'Rajesh Patel',
         email: 'farmer@agritech.in',
         mobileNumber: '+91 98765 43210',
-        password: 'Farmer@123',
         state: 'Punjab',
         district: 'Ludhiana',
         preferredLanguage: 'en',
         role: 'farmer',
+      };
+      const token = generateToken(demoFarmer.id, demoFarmer.role);
+      return res.json({
+        success: true,
+        message: 'Logged in successfully (Demo Farmer Mode - No DB Required)',
+        token,
+        user: demoFarmer,
       });
-    } else if (!user && normalizedEmail === 'admin@agritech.in' && password === 'Admin@123') {
-      user = await User.create({
+    }
+
+    if (normalizedEmail === 'admin@agritech.in' && password === 'Admin@123') {
+      const demoAdmin = {
+        id: '65f000000000000000000002',
+        _id: '65f000000000000000000002',
         fullName: 'AgriTech Administrator',
         email: 'admin@agritech.in',
         mobileNumber: '+91 98765 00001',
-        password: 'Admin@123',
         state: 'Maharashtra',
         district: 'Pune',
         preferredLanguage: 'en',
         role: 'admin',
+      };
+      const token = generateToken(demoAdmin.id, demoAdmin.role);
+      return res.json({
+        success: true,
+        message: 'Logged in successfully (Demo Admin Mode - No DB Required)',
+        token,
+        user: demoAdmin,
       });
     }
 
+    // Guard if database is not connected for regular users
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database is connecting to MongoDB. Please use demo credentials or retry in a few seconds.',
+      });
+    }
+
+    const user = await User.findOne({ email: normalizedEmail }).select('+password');
     if (!user || !(await user.matchPassword(password))) {
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
@@ -123,6 +141,17 @@ router.post('/login', async (req, res, next) => {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
+        mobileNumber: user.mobileNumber,
+        state: user.state,
+        district: user.district,
+        preferredLanguage: user.preferredLanguage,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
         mobileNumber: user.mobileNumber,
         state: user.state,
         district: user.district,
