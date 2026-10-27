@@ -1,5 +1,22 @@
-﻿node_modules/
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Environment — NEVER commit secrets
 .env
+server/.env
+client/.env
+*.env.local
+
+# Production build (Render builds this during deployment)
+client/dist/
 dist/
+
+# OS / Editor
 .DS_Store
+Thumbs.db
 *.log
+npm-debug.log*
+.vscode/
+.idea/
