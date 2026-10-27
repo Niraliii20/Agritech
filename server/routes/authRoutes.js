@@ -12,7 +12,20 @@ router.post('/register', async (req, res, next) => {
   try {
     const { fullName, email, mobileNumber, password, state, district, preferredLanguage, role, adminSecret } = req.body;
 
-    const userExists = await User.findOne({ email: email.toLowerCase() });
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        success: false,
+        message: 'Account creation is temporarily unavailable because the database is not connected. Please try again shortly.',
+      });
+    }
+
+    if (!fullName || !email || !mobileNumber || !password || !state || !district) {
+      return res.status(400).json({ success: false, message: 'Please complete all required fields.' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const userExists = await User.findOne({ email: normalizedEmail });
     if (userExists) {
       return res.status(400).json({ success: false, message: 'An account with this email address already exists' });
     }
@@ -32,7 +45,7 @@ router.post('/register', async (req, res, next) => {
 
     const user = await User.create({
       fullName,
-      email: email.toLowerCase(),
+      email: normalizedEmail,
       mobileNumber,
       password,
       state,
@@ -141,17 +154,6 @@ router.post('/login', async (req, res, next) => {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
-        mobileNumber: user.mobileNumber,
-        state: user.state,
-        district: user.district,
-        preferredLanguage: user.preferredLanguage,
-        role: user.role,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-});
         mobileNumber: user.mobileNumber,
         state: user.state,
         district: user.district,

@@ -101,32 +101,16 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (userData) => {
-    try {
-      const res = await api.post('/auth/register', userData);
-      if (res.data?.success) {
-        setToken(res.data.token);
-        setUser(res.data.user);
-        localStorage.setItem('agritech_token', res.data.token);
-        localStorage.setItem('agritech_user', JSON.stringify(res.data.user));
-        return res.data;
-      }
-    } catch (err) {
-      // Local fallback registration if offline
-      const newUser = {
-        id: 'user_' + Date.now(),
-        ...userData,
-        role: userData.role || 'farmer',
-      };
-      const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).replace(/=/g, '');
-      const payload = btoa(JSON.stringify({ id: newUser.id, role: newUser.role, iat: Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + 30 * 86400 })).replace(/=/g, '');
-      const token = `${header}.${payload}.demo_signature_offline_mode`;
-
-      setToken(token);
-      setUser(newUser);
-      localStorage.setItem('agritech_token', token);
-      localStorage.setItem('agritech_user', JSON.stringify(newUser));
-      return { success: true, token, user: newUser };
+    const res = await api.post('/auth/register', userData);
+    if (!res.data?.success || !res.data.token || !res.data.user) {
+      throw new Error(res.data?.message || 'Registration failed. Please try again.');
     }
+
+    setToken(res.data.token);
+    setUser(res.data.user);
+    localStorage.setItem('agritech_token', res.data.token);
+    localStorage.setItem('agritech_user', JSON.stringify(res.data.user));
+    return res.data;
   };
 
   const logout = () => {

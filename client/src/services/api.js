@@ -35,8 +35,9 @@ api.interceptors.response.use(
   (error) => {
     const url = error.config?.url || '';
 
-    // If 401 on auth/login, allow the error through for wrong passwords
-    if (error.response?.status === 401 && url.includes('/auth/login')) {
+    // Authentication must use the real API response. Mocking an auth failure
+    // can make registration appear successful without creating an account.
+    if (url.includes('/auth/')) {
       return Promise.reject(error);
     }
 

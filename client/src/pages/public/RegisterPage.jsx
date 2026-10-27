@@ -77,7 +77,10 @@ const RegisterPage = () => {
         navigate('/dashboard');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please check form entries.');
+      setError(
+        err.response?.data?.message ||
+        (err.response ? err.message : 'Unable to reach the account service. Check your connection and try again.')
+      );
     } finally {
       setLoading(false);
     }
