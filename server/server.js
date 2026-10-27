@@ -33,11 +33,19 @@ const app  = express();
 const PORT = process.env.PORT || 5000;
 
 // Determine if a production build exists on disk
-// (works regardless of whether NODE_ENV is set on the host)
-const distPath   = path.join(__dirname, '..', 'client', 'dist');
-const distExists = fs.existsSync(path.join(distPath, 'index.html'));
+// Check multiple candidate locations so it works whether run from root or server/
+const candidatePaths = [
+  path.join(__dirname, 'public'),
+  path.join(__dirname, '..', 'client', 'dist'),
+  path.join(process.cwd(), 'server', 'public'),
+  path.join(process.cwd(), 'client', 'dist'),
+  path.join(process.cwd(), 'public'),
+];
 
-console.log('[AgriTech] dist path:', distPath);
+const distPath = candidatePaths.find(p => fs.existsSync(path.join(p, 'index.html'))) || null;
+const distExists = !!distPath;
+
+console.log('[AgriTech] Resolved static dist path:', distPath);
 console.log('[AgriTech] dist exists:', distExists);
 console.log('[AgriTech] NODE_ENV:', process.env.NODE_ENV || 'not set');
 
