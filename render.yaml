@@ -1,0 +1,14 @@
+# Render deployment configuration
+# https://render.com/docs/render-yaml-reference
+services:
+  - type: web
+    name: agritech
+    runtime: node
+    rootDir: .
+    buildCommand: npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Set these secrets in the Render dashboard (Environment tab) — do NOT hardcode here:
+      # MONGODB_URI, JWT_SECRET, JWT_EXPIRE, ADMIN_CREATION_SECRET, OPENWEATHER_API_KEY
