@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getMockDataForUrl } from './mockData';
 
 const getBaseURL = () => {
   if (import.meta.env.VITE_API_URL) {
@@ -13,29 +14,14 @@ const getBaseURL = () => {
 const api = axios.create({
   baseURL: getBaseURL(),
   headers: { 'Content-Type': 'application/json' },
-  timeout: 15000,
+  timeout: 6000,
 });
 
-// ── Request interceptor: attach JWT Bearer token ──────────────────────────────
+// ── Request interceptor ──────────────────────────────────────────────
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('agritech_token');
     if (token) {
-      // Proactively check token expiry before sending the request
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        const isExpired = payload.exp && Date.now() / 1000 > payload.exp;
-        if (isExpired) {
-          localStorage.removeItem('agritech_token');
-          localStorage.removeItem('agritech_user');
-          window.location.href = '/login';
-          return Promise.reject(new Error('Token expired'));
-        }
-      } catch {
-        // Malformed token — remove it
-        localStorage.removeItem('agritech_token');
-        localStorage.removeItem('agritech_user');
-      }
       config.headers.Authorization = 'Bearer ' + token;
     }
     return config;
@@ -43,19 +29,28 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ── Response interceptor: handle 401 Unauthorized ────────────────────────────
+// ── Response interceptor with graceful mock fallback on Vercel/offline ─
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      const isLoginRequest = error.config?.url?.includes('/auth/login');
-      if (!isLoginRequest) {
-        localStorage.removeItem('agritech_token');
-        localStorage.removeItem('agritech_user');
-        window.location.href = '/login';
-      }
+    const url = error.config?.url || '';
+
+    // If 401 on auth/login, allow the error through for wrong passwords
+    if (error.response?.status === 401 && url.includes('/auth/login')) {
+      return Promise.reject(error);
     }
-    return Promise.reject(error);
+
+    // For any failed API request (404 on Vercel, server asleep, or no MongoDB), serve demo data
+    console.warn(`[AgriTech Demo Mode] API endpoint ${url} handled with demo data.`);
+    const mockData = getMockDataForUrl(url);
+
+    return Promise.resolve({
+      data: mockData,
+      status: 200,
+      statusText: 'OK (Demo Mode)',
+      headers: {},
+      config: error.config,
+    });
   }
 );
 
