@@ -1,4 +1,5 @@
-﻿import express from 'express';
+import express from 'express';
+import mongoose from 'mongoose';
 import { User } from '../models/User.js';
 import { generateToken } from '../utils/generateToken.js';
 import { protect } from '../middleware/auth.js';
@@ -72,7 +73,42 @@ router.post('/login', async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Please provide both email and password' });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+    // Guard if database is still connecting
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database is connecting to MongoDB Atlas. Please wait a few seconds and try again.',
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    let user = await User.findOne({ email: normalizedEmail }).select('+password');
+
+    // Auto-create demo accounts if they don't exist yet
+    if (!user && normalizedEmail === 'farmer@agritech.in' && password === 'Farmer@123') {
+      user = await User.create({
+        fullName: 'Rajesh Patel',
+        email: 'farmer@agritech.in',
+        mobileNumber: '+91 98765 43210',
+        password: 'Farmer@123',
+        state: 'Punjab',
+        district: 'Ludhiana',
+        preferredLanguage: 'en',
+        role: 'farmer',
+      });
+    } else if (!user && normalizedEmail === 'admin@agritech.in' && password === 'Admin@123') {
+      user = await User.create({
+        fullName: 'AgriTech Administrator',
+        email: 'admin@agritech.in',
+        mobileNumber: '+91 98765 00001',
+        password: 'Admin@123',
+        state: 'Maharashtra',
+        district: 'Pune',
+        preferredLanguage: 'en',
+        role: 'admin',
+      });
+    }
+
     if (!user || !(await user.matchPassword(password))) {
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
